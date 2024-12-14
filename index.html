@@ -37,6 +37,28 @@
         font-size: 1.2em;
       }
     </style>
+    <script>
+      // Check if service workers are supported
+      if ('serviceWorker' in navigator) {
+        // Get all service worker registrations
+        navigator.serviceWorker.getRegistrations()
+            .then(registrations => {
+                // Unregister each service worker
+                const unregisterPromises = registrations.map(registration => {
+                    console.log('Unregistering service worker:', registration);
+                    return registration.unregister();
+                });
+
+                return Promise.all(unregisterPromises);
+            })
+            .then(results => {
+                console.log('All service workers have been unregistered:', results);
+            })
+            .catch(error => {
+                console.error('Error unregistering service workers:', error);
+            });
+      }
+    </script>
   </head>
   <body>
     <div class="container">
