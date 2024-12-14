@@ -37,28 +37,6 @@
         font-size: 1.2em;
       }
     </style>
-    <script>
-      // Check if service workers are supported
-      if ('serviceWorker' in navigator) {
-        // Get all service worker registrations
-        navigator.serviceWorker.getRegistrations()
-            .then(registrations => {
-                // Unregister each service worker
-                const unregisterPromises = registrations.map(registration => {
-                    console.log('Unregistering service worker:', registration);
-                    return registration.unregister();
-                });
-
-                return Promise.all(unregisterPromises);
-            })
-            .then(results => {
-                console.log('All service workers have been unregistered:', results);
-            })
-            .catch(error => {
-                console.error('Error unregistering service workers:', error);
-            });
-      }
-    </script>
   </head>
   <body>
     <div class="container">
@@ -78,5 +56,54 @@
         <a href="mailto:squashportland@gmail.com">squashportland@gmail.com</a>
       </p>
     </div>
+
+    <script>
+      // Function to unregister service workers
+      async function unregisterServiceWorkers() {
+        try {
+          // First, check if service workers are supported
+          if (!('serviceWorker' in navigator)) {
+            console.log('Service workers not supported');
+            return;
+          }
+
+          // Get all service worker registrations
+          const registrations = await navigator.serviceWorker.getRegistrations();
+
+          if (registrations.length === 0) {
+            console.log('No service workers found');
+            return;
+          }
+
+          // Unregister each service worker
+          const results = await Promise.all(
+            registrations.map(async (registration) => {
+              const scope = registration.scope;
+              const success = await registration.unregister();
+              console.log(
+                `Service worker with scope ${scope} unregistered:`,
+                success
+              );
+              return success;
+            })
+          );
+
+          // Check if all service workers were successfully unregistered
+          const allUnregistered = results.every(Boolean);
+          if (allUnregistered) {
+            console.log('All service workers successfully unregistered');
+            // Force reload the page to ensure the service worker is completely removed
+            window.location.reload(true);
+          } else {
+            console.warn('Some service workers failed to unregister');
+          }
+        } catch (error) {
+          console.error('Error during service worker unregistration:', error);
+        }
+      }
+
+      // Wait for the page to load before attempting to unregister service workers
+      window.addEventListener('load', unregisterServiceWorkers);
+    </script>
   </body>
 </html>
